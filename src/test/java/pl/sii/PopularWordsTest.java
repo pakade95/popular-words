@@ -42,7 +42,7 @@ public class PopularWordsTest {
     }
 
     private BigDecimal calculatePercentage(double obtained, double total) {
-        return new BigDecimal(obtained * 100 / total).setScale(4, RoundingMode.HALF_UP);
+        return BigDecimal.valueOf(obtained * 100 / total).setScale(4, RoundingMode.HALF_UP);
     }
 
     private Map<String, Long> getWordsFrequencyListCreatedByAdamKilgarriff() {

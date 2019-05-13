@@ -3,9 +3,15 @@ package pl.sii;
 import org.apache.commons.lang3.NotImplementedException;
 import org.junit.Test;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.IOException;
 import java.math.BigDecimal;
 import java.math.RoundingMode;
-import java.util.Map;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.*;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -34,10 +40,14 @@ public class PopularWordsTest {
         System.out.println("totalFrequencyInAResult = " + totalFrequencyInAResult);
 
         result.forEach((key, value) -> {
-            BigDecimal valueUsagePercentage = calculatePercentage(value, totalFrequencyInAResult);
-            BigDecimal kilgarriffUsagePercentage = calculatePercentage(wordsFrequencyListCreatedByAdamKilgarriff.get(key), totalFrequencyByKilgarriff);
-            BigDecimal diff = kilgarriffUsagePercentage.subtract(valueUsagePercentage);
-            System.out.println(key + "," + valueUsagePercentage + "%," + kilgarriffUsagePercentage + "%," + (new BigDecimal(0.5).compareTo(diff.abs()) > 0) + " " + diff);
+            if (wordsFrequencyListCreatedByAdamKilgarriff.get(key) != null) {
+                BigDecimal valueUsagePercentage = calculatePercentage(value, totalFrequencyInAResult);
+                BigDecimal kilgarriffUsagePercentage = calculatePercentage(wordsFrequencyListCreatedByAdamKilgarriff.get(key), totalFrequencyByKilgarriff);
+                BigDecimal diff = kilgarriffUsagePercentage.subtract(valueUsagePercentage);
+                System.out.println(key + "," + valueUsagePercentage + "%," + kilgarriffUsagePercentage + "%," + (new BigDecimal(0.5).compareTo(diff.abs()) > 0) + " " + diff);
+            } else {
+                System.out.println("Word " + key + " was not found in all.num file!");
+            }
         });
     }
 
@@ -46,6 +56,40 @@ public class PopularWordsTest {
     }
 
     private Map<String, Long> getWordsFrequencyListCreatedByAdamKilgarriff() {
-        throw new NotImplementedException("TODO implementation");
+
+        Map<String, Long> hashMap = new HashMap<>();
+        String filePath = new File("src/test/resources/all.num").getAbsolutePath();
+        List<String> list = new ArrayList<>();
+        try {
+            BufferedReader br = new BufferedReader(new FileReader(filePath));
+            String line = null;
+            while (((line = br.readLine()) != null)) {
+                String edit[] = line.toLowerCase().split(" ");
+
+                if (hashMap.containsKey(edit[1])) {
+                    long x = hashMap.remove(edit[1]);
+                    hashMap.put(edit[1], x + Long.parseLong(edit[0]));
+                } else {
+                    hashMap.put(edit[1], Long.parseLong(edit[0]));
+                }
+            }
+
+        } catch (IOException e) {
+            System.out.println("Error loading data from the file!");
+            e.printStackTrace();
+        }
+
+        Optional<String> fileTitle = null;
+        try {
+            fileTitle = Files.lines(Paths.get(filePath))
+                    .map(line -> line.toLowerCase().split(" ")[1]).findFirst();
+        } catch (IOException e) {
+            System.out.println(
+                    "Error loading data from the file!");
+            e.printStackTrace();
+        }
+
+        hashMap.remove(fileTitle.get());
+        return hashMap;
     }
 }
